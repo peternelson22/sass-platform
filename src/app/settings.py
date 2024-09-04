@@ -1,22 +1,18 @@
-
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-e20ej)*vxi9i&w5*8fd^prqt1mp-j$f(aqu_!uk^_un3uy7h@^'
-
+SECRET_KEY = config('DJANGO_SECRET_KEY') 
+ 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DJANGO_DEBUG', cast=bool)
 
-ALLOWED_HOSTS = []
-
-
+ALLOWED_HOSTS = [ config('ALLOWED_HOSTS') ]
+ 
+if DEBUG:
+    ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
 # Application definition
 
 INSTALLED_APPS = [
@@ -27,6 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    'command',
     'visits',
 ]
 
@@ -71,6 +68,25 @@ DATABASES = {
     }
 }
 
+# DB_USERNAME = config("POSTGRES_USER")
+# DB_PASSWORD = config("POSTGRES_PASSWORD")
+# DB_DATABASE = config("POSTGRES_DB")
+# DB_HOST = config("POSTGRES_HOST")
+# DB_PORT = config("POSTGRES_PORT")
+# DB_IS_AVAILABLE = all([DB_USERNAME, DB_PASSWORD, DB_DATABASE, DB_HOST, DB_PORT])
+
+# if DB_IS_AVAILABLE:
+#     DATABASES = {
+#         "default": {
+#             "ENGINE": "django.db.backends.postgresql",
+#             "NAME": DB_DATABASE,
+#             "USER": DB_USERNAME,
+#             "PASSWORD": DB_PASSWORD,
+#             "HOST": DB_HOST,
+#             "PORT": DB_PORT,
+#         }
+#     }
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
@@ -107,6 +123,15 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_BASE_DIR = BASE_DIR / 'staticfiles'
+STATICFILES_BASE_DIR.mkdir(exist_ok=True, parents=True)
+
+STATICFILES_VENDOR_DIR = STATICFILES_BASE_DIR / 'vendors'
+
+STATICFILES_DIRS = [ STATICFILES_BASE_DIR ]
+
+STATIC_ROOT = BASE_DIR / 'local-cdn'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
