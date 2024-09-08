@@ -10,7 +10,7 @@ The goal of this project is to learn how to create a reusable foundation for bui
 ```bash
 mkdir -p ~/dev/saas
 cd ~/dev/saas
-git clone https://github.com/peternelson063/sass .
+git clone https://github.com/peternelson063/sass-platform .
 ```
 
 ### Create Virtual Environment
