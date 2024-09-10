@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required
 
 VALID_CODE = '123'
 
-@login_required
 def home(request):
     qs = PageVisit.objects.all()
     page_qs = PageVisit.objects.filter(path=request.path)

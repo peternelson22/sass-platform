@@ -3,8 +3,8 @@ from django.db import models
 from django.contrib.auth.models import Group, Permission
 from django.db.models.signals import post_save
 from django.conf import settings
-
-
+from django.urls import reverse
+ 
 User = settings.AUTH_USER_MODEL
 
 ALLOW_CUSTOM_GROUPS = True
@@ -68,6 +68,9 @@ class SubscriptionPrice(models.Model):
     class Meta:
         ordering = ['subscription__order', 'order', 'featured', '-updated']
     
+    def get_checkout_url(self):
+        return reverse("sub-price-checkout", kwargs = {"price_id": self.id})
+        
     @property
     def stripe_currency(self):
         return "usd"
@@ -119,12 +122,72 @@ class SubscriptionPrice(models.Model):
     #         qs = SubscriptionPrice.objects.filter(subscription=self.subscription, interval=self.interval).exclude(id=self.id)
     #         qs.update(featured=False)
 
-            
+class SubscriptionStatus(models.TextChoices):
+    ACTIVE = 'active', 'Active'
+    TRIALING = 'trialing', 'Trialing'
+    INCOMPLETE = 'incomplete', 'Incomplete'
+    INCOMPLETE_EXPIRED = 'incomplete_expired', 'Incomplete Expired'
+    PAST_DUE = 'past_due', 'Past Due'
+    CANCELED = 'canceled', 'Canceled'
+    UNPAID = 'unpaid', 'Unpaid'
+    PAUSED = 'paused', 'Paused'
+           
 class UserSubscription(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
-    active = models.BooleanField(default=True)  
+    stripe_id = models.CharField(max_length=120, null=True, blank=True)
+    active = models.BooleanField(default=True)
+    user_cancelled = models.BooleanField(default=False)
+    original_period_start = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    current_period_start = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    current_period_end = models.DateTimeField(auto_now=False, auto_now_add=False, blank=True, null=True)
+    cancel_at_period_end = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, choices=SubscriptionStatus.choices, null=True, blank=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
     
+    def get_absolute_url(self):
+        return reverse("user_subscription")
+    
+    def get_cancel_url(self):
+        return reverse("user_subscription_cancel")
+    
+    @property
+    def is_active_status(self):
+        return self.status in [
+            SubscriptionStatus.ACTIVE, 
+            SubscriptionStatus.TRIALING
+        ]
+    
+    @property
+    def plan_name(self):
+        if not self.subscription:
+            return None
+        return self.subscription.name
+
+    def serialize(self):
+        return {
+            "plan_name": self.plan_name,
+            "status": self.status,
+            "current_period_start": self.current_period_start,
+            "current_period_end": self.current_period_end,
+        }
+        
+    @property
+    def billing_cycle_anchor(self):
+        """
+        https://docs.stripe.com/payments/checkout/billing-cycle
+        Optional delay to start new subscription in
+        Stripe checkout
+        """
+        if not self.current_period_end:
+            return None
+        return int(self.current_period_end.timestamp())
+    
+    def save(self, *args, **kwargs):
+        if self.original_period_start is None and self.current_period_start is not None:
+            self.original_period_start = self.current_period_start
+        super().save(*args, **kwargs)
 
 def user_sub_post_save(sender, instance, *args, **kwargs):
     user_sub_instance = instance

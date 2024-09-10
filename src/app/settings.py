@@ -4,6 +4,8 @@ from pathlib import Path
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+BASE_URL = config("BASE_URL", default=None)
+
 SECRET_KEY = config('DJANGO_SECRET_KEY') 
  
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -28,6 +30,7 @@ INSTALLED_APPS = [
     'profiles',
     'subscriptions',
     'customers',
+    'checkouts',
     
     # third party apps
     'allauth_ui',
