@@ -1,6 +1,7 @@
 name: Hello world GH
 run-name: ${{ github.actor }} is testing out GitHub Actions 🚀
-on: [push]
+on: 
+  workflow_dispatch:
 
 jobs:
   hello:
