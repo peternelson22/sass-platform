@@ -10,7 +10,7 @@ jobs:
   django-test:
     runs-on: ubuntu-latest
     env:
-      DJANGO_DEBUG: 1
+      DJANGO_DEBUG: 0
       # DJANGO_SECRET_KEY: changeme
     steps:
       - name: Checkout code
