@@ -3,6 +3,31 @@ import helpers.billing
 from customers.models import Customer
 from subscriptions.models import Subscription, UserSubscription
 
+def refresh_active_users_subscriptions(user_ids=None, active_only=True, days_left=-1, days_ago=-1, day_start=-1, day_end=-1, verbose=False):
+    
+    qs = UserSubscription.objects.all()
+    if active_only:
+        qs = qs.by_active_trialing()
+    if user_ids is not None:
+        qs = qs.by_user_ids(user_ids=user_ids)
+    if days_ago > -1:
+        qs = qs.by_days_ago(days_ago=days_ago)
+    if days_left > -1:
+        qs = qs.by_days_left(days_left=days_left)
+    if day_start > -1 and day_end > -1:
+        qs = qs.by_range(days_start=day_start, days_end=day_end, verbose=verbose)
+    complete_count = 0
+    qs_count = qs.count()
+    for obj in qs:
+        if verbose:
+            print("Updating user", obj.user, obj.subscription, obj.current_period_end)
+        if obj.stripe_id:
+            sub_data = helpers.billing.get_subscription(obj.stripe_id, raw=False)
+            for k,v in sub_data.items():
+                setattr(obj, k, v)
+            obj.save()
+            complete_count += 1
+    return complete_count == qs_count
     
 def clear_dangling_subs():
     qs = Customer.objects.all()
