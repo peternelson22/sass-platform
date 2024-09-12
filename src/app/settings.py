@@ -15,7 +15,6 @@ ALLOWED_HOSTS = [ '*' ]
  
 if DEBUG:
     ALLOWED_HOSTS += ['127.0.0.1', 'localhost']
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -25,6 +24,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    # my apps
+    'landing',
     'command',
     'visits',
     'profiles',

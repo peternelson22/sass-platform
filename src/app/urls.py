@@ -5,9 +5,10 @@ from .views import home, protected_view
 from auth.views import login_view, register_view
 from subscriptions.views import subscription_price_view, user_subscription_view
 from checkouts.views import checkout_finalize_view, product_price_redirect_view, checkout_redirect_view
+from landing.views import landing_page_view
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', landing_page_view, name='home'),
     # path('login/', login_view, name='login'),
     # path('register/', register_view, name='register'),
     path("checkout/sub-price/<int:price_id>/", product_price_redirect_view, name='sub-price-checkout'),

@@ -1,0 +1,9 @@
+{% extends "base.html" %} 
+{% block title %}SaaS app - {{ block.super}}{% endblock title %} 
+{% block content%} 
+
+{% include "landing/hero.html" %}
+{% include "landing/features.html" %}
+{% include "landing/proof.html" with page_views=page_views_count %}
+
+{% endblock content %}
